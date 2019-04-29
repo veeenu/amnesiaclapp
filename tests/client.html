@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <style>
+      div, input, label {
+        font-size: 3rem;
+        font-family:'Courier New', Courier, monospace
+      }
+      div {
+        display: flex;
+        flex-wrap: wrap;
+      }
+      input, label {
+        width: 50%;
+        margin: 0; padding: 0;
+        box-sizing: border-box;
+        text-align: center;
+      }
+    </style>
+    <script src='https://cdnjs.cloudflare.com/ajax/libs/chroma-js/2.0.3/chroma.min.js'></script>
+  </head>
+  <body>
+    <div>
+      <label>X</label><input id='x'/><br/>
+      <label>Y</label><input id='y'/><br/>
+      <label>Z</label><input id='z'/><br/>
+      <label>Dist. H</label><input id='distanceh'/><br/>
+      <label>Dist. Y</label><input id='distancey'/><br/>
+    </div>
+    <script>
+      (function() {
+        let sclh = chroma.scale(['green', 'red']).domain([0, 150]);
+        let scly = chroma.scale(['green', 'red']).domain([801+78, 0]);
+
+        // -763.0272 78.22564 412.4533
+        // -830 -801 541
+        let ws = new WebSocket("ws://localhost:8080/")
+        let x = document.getElementById('x')
+        let y = document.getElementById('y')
+        let z = document.getElementById('z')
+        let DH = document.getElementById('distanceh')
+        let DY = document.getElementById('distancey')
+
+        ws.onmessage = function(evt) {
+          let d = JSON.parse(evt.data)
+          x.value = d.x.toFixed(2)
+          y.value = d.y.toFixed(2)
+          z.value = d.z.toFixed(2)
+
+          let dh = Math.sqrt(Math.pow(d.x + 830, 2) + Math.pow(d.z - 541, 2))
+          DH.value = dh > 150 ? '' : dh.toFixed(2)
+          DH.style.color = sclh(dh).hex()
+
+          let dy = d.y + 801
+          DY.value = dy.toFixed(2)
+          DY.style.color = scly(dy).hex()
+        }
+
+      }())
+    </script>
+  </body>
+</html>
