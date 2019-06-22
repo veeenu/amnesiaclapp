@@ -7,6 +7,7 @@ class NProcess : public Napi::ObjectWrap<NProcess> {
       Napi::HandleScope scope(env);
 
       Napi::Function func = DefineClass(env, "Process", {
+        InstanceMethod("reattach", &NProcess::reattach),
         InstanceMethod("attached", &NProcess::is_attached),
         InstanceMethod("base", &NProcess::get_base),
         InstanceMethod("pointer", &NProcess::eval_pointer_chain),
@@ -38,9 +39,9 @@ class NProcess : public Napi::ObjectWrap<NProcess> {
         Napi::TypeError::New(env, "String expected").ThrowAsJavaScriptException();
       }
 
-      Napi::String value = info[0].As<Napi::String>();
+      process_name = info[0].As<Napi::String>();
       try {
-        this->proc = new Process(value);
+        this->proc = new Process(process_name);
       } catch (const memory_exception& e) {
         throw Napi::Error::New(env, e.what());
       }
@@ -48,18 +49,34 @@ class NProcess : public Napi::ObjectWrap<NProcess> {
 
   private:
     static Napi::FunctionReference constructor;
+
+    Napi::Value reattach(const Napi::CallbackInfo& info) {
+      Napi::Env env = info.Env();
+      Napi::HandleScope scope(env);
+
+      try {
+        this->proc->attach(process_name);
+      } catch (const memory_exception& e) {
+        throw Napi::Error::New(env, e.what());
+      }
+
+      return Napi::Boolean::New(env, this->proc->is_attached());
+    }
+
     Napi::Value is_attached(const Napi::CallbackInfo& info) {
       Napi::Env env = info.Env();
       Napi::HandleScope scope(env);
 
       return Napi::Boolean::New(env, this->proc->is_attached());
     }
+
     Napi::Value get_base(const Napi::CallbackInfo& info) {
       Napi::Env env = info.Env();
       Napi::HandleScope scope(env);
 
       return Napi::Number::New(env, this->proc->get_base());
     }
+    
     Napi::Value eval_pointer_chain(const Napi::CallbackInfo& info) {
       Napi::Env env = info.Env();
       Napi::HandleScope scope(env);
@@ -120,7 +137,9 @@ class NProcess : public Napi::ObjectWrap<NProcess> {
       }
       return env.Null();
     }
+
     Process* proc;
+    std::string process_name;
 };
 Napi::FunctionReference NProcess::constructor;
 

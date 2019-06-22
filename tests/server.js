@@ -18,6 +18,10 @@ wss.on('connection', function (ws) {
   function sendFn () {
     let startTime = time()
     try {
+      if (!p.attached()) {
+        p.reattach()
+      }
+      
       let xp = p.pointer([0x143B67DF0, 0x48, 0x28, 0x80])
       let yp = xp + 4
       let zp = yp + 4
@@ -28,6 +32,7 @@ wss.on('connection', function (ws) {
 
       let o = { x: x, y: y, z: z }
       ws.send(JSON.stringify(o))
+      done = true
     } catch (err) {
       console.log(err)
     }
