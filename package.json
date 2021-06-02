@@ -15,7 +15,7 @@
   "license": "ISC",
   "dependencies": {
     "node-addon-api": "^1.6.3",
-    "ws": "^6.2.1"
+    "ws": "^7.4.6"
   },
   "devDependencies": {
     "node-gyp": "^4.0.0"
